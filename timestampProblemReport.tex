@@ -1,0 +1,111 @@
+
+\documentclass[12pt]{article}
+\usepackage[a4paper, margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{parskip}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Time Step Report}
+\lhead{Giulian}
+\rfoot{Page \thepage}
+
+\title{\small{Following CADEet al 2021 > skippeddata = find(1.5*1/fs);
+    if ~isempty(badrows) || ~isempty(skippeddata)
+        if ~isempty(skippeddata)
+            disp(['Results in ' num2str(length(skippeddata)) ' gaps in downsampled data.  Should be fixed during prh process.']);
+        else
+            disp('No gaps found in downsampled data');}}
+%\author{Giulian}
+%\date{May 19, 2025}
+
+\begin{document}
+\maketitle
+
+\section*{\small{1. Overview of the problem}}
+Analysis of the continuity of time steps in the CATS DAIRY DATA of the first deployment in Sicily 01-07-2024. Since we had the downsampling error, the goal was to verify whether the time intervals between the samples are consistent and to identify any anomalies or irregularities. 
+
+\section*{\small{2. Visual Inspection}}
+The figure below displays the time difference between consecutive timestamps. Regular vertical patterns indicate multiple, repeating sampling intervals, suggesting nonuniform sampling.
+
+\begin{center}
+\includegraphics[width=0.8\textwidth]{timeseries_plot.png}
+\end{center}
+
+\section*{\small{3. Unique Time Steps Detected}}
+The following unique time steps (in seconds) were identified in the data set:
+
+\begin{verbatim}
+0.00498199462890625
+0.0049896240234375
+0.00499725341796875
+0.0050048828125
+0.00501251220703125
+0.0124893188476562
+0.0124969482421875
+0.0125045776367188
+0.01251220703125
+0.0125198364257812
+0.0174789428710938
+0.017486572265625
+0.0174942016601562
+0.0175018310546875
+0.0175094604492188
+0.01751708984375
+0.0224838256835938
+0.022491455078125
+0.0224990844726562
+0.0225067138671875
+0.0225143432617188
+0.0274810791015625
+0.0274887084960938
+0.027496337890625
+0.0275039672851562
+0.0275115966796875
+\end{verbatim}
+
+\section*{4. Approximate Grouping by Sampling Rate}
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Approx. dt (s)} & \textbf{Rate (Hz)} & \textbf{Likely Source} \\
+\midrule
+0.005 & 200     & High-frequency sensor (e.g., accelerometer) \\
+0.0125 & 80      & Mid-rate sensor (e.g., magnetometer)        \\
+0.0175 & 57.14   & Primary sampling rate (assumed main signal) \\
+0.0225 & 44.44   & Low-frequency or drift                      \\
+0.0275 & 36.36   & Possible logger issue or buffering delay    \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{5. Implications}
+\begin{itemize}
+  \item Non-uniform sampling can distort results from spectral or kinematic analysis.
+  \item Tools assuming regular sampling may misinterpret temporal dynamics.
+  \item Multiple sensors may not be time-synchronized.
+\end{itemize}
+
+\section*{6. Possible Solutions}
+\subsection*{Option A: Interpolation to Uniform Sampling}
+\begin{verbatim}
+t_uniform = t_sec(1):1/57.14:t_sec(end);
+x_uniform = interp1(t_sec, x, t_uniform, 'linear');
+\end{verbatim}
+
+\subsection*{Option B: Filtering the Main Sampling Rate}
+\begin{verbatim}
+rounded_dt = round(dt, 4);
+idx_main = rounded_dt == 0.0175;
+x_main = x(idx_main);
+t_main = t_sec(idx_main);
+\end{verbatim}
+
+\section*{7. Next Steps}
+We recommend standardizing the data based on the most frequent time step or resampling it at a known uniform rate. A custom MATLAB function can be provided to automate this task.
+
+
+\end{document}
